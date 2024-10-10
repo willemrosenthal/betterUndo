@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import player from "play-sound";
 
+const debugMode = true;
+
 let audio: any;
 let holdTimeout: NodeJS.Timeout | undefined;
 let isPlaying = false;
@@ -19,14 +21,14 @@ export function activate(context: vscode.ExtensionContext) {
   outputChannel = vscode.window.createOutputChannel("BetterUndo");
   outputChannel.show();
 
-  outputChannel.appendLine("BetterUndo extension activated");
+  log("BetterUndo extension activated", true);
 
   const soundFilePath = path.join(
     context.extensionPath,
     "dist",
     "yakety-sax.mp3"
   );
-  outputChannel.appendLine(`Sound file path: ${soundFilePath}`);
+  log(`Sound file path: ${soundFilePath}`);
 
   // Read initial volume setting
   updateSettings();
@@ -107,12 +109,12 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument(
       debounce((event: vscode.TextDocumentChangeEvent) => {
         if (isUndoEvent(event)) {
-          outputChannel.appendLine("Undo command detected");
+          log("Undo command detected");
           // vscode.window.showInformationMessage("Undo command detected!");
 
           if (!holdTimeout) {
             holdTimeout = setTimeout(() => {
-              outputChannel.appendLine(
+              log(
                 "Hold threshold reached, attempting to play sound"
               );
               if (!isPlaying) {
@@ -125,23 +127,25 @@ export function activate(context: vscode.ExtensionContext) {
         }
         // if not an undo event
         else {
-          outputChannel.appendLine("Not Undo : isPlaying" + isPlaying);         
+          log("Not Undo : isPlaying" + isPlaying);         
 
           // account for race condition
-          if (bufferTime > 0) {
+          if (bufferTime > 0 && isPlaying) {
             bufferTime--;
             return;
           }
-          // outputChannel.appendLine("Change. Stop sound!");
+          if (bufferTime <= 0) {
+            stopPlaying();
+          }
+          // log("Change. Stop sound!");
           if (holdTimeout) {
             clearTimeout(holdTimeout);
             holdTimeout = undefined;
-            outputChannel.appendLine("Hold timeout cleared");
+            log("Hold timeout cleared");
           }
           if (isPlaying) {
-            stopSound();
-            isPlaying = false;
-            outputChannel.appendLine("Sound stopped");
+            stopPlaying();
+            log("Sound stopped");
           }
         }
       }, 70)
@@ -149,12 +153,17 @@ export function activate(context: vscode.ExtensionContext) {
   );
 }
 
+function stopPlaying() {
+  stopSound();
+  isPlaying = false;
+}
+
 function updateSettings() {
   const config = vscode.workspace.getConfiguration("betterundo");
   volume = config.get("volume", 0.35);
   assistanceDelay = config.get("assistanceDelay", 0.26);
-  outputChannel.appendLine(`Volume updated to: ${volume}`);
-  outputChannel.appendLine(
+  log(`Volume updated to: ${volume}`);
+  log(
     `Assistance delay updated to: ${assistanceDelay} seconds`
   );
 }
@@ -175,7 +184,7 @@ function isUndoEvent(event: vscode.TextDocumentChangeEvent): boolean {
 
   // Additional check: If the buffer is empty but undo command was triggered
   if (event.document.version === 1 && event.contentChanges.length === 0) {
-    outputChannel.appendLine("Undo reached the start of the document.");
+    log("Undo reached the start of the document.");
     return false;
   }
 
@@ -192,12 +201,12 @@ function debounce(func: Function, delay: number) {
 }
 
 function playSound(filePath: string) {
-  outputChannel.appendLine(`Attempting to play sound: ${filePath}`);
+  log(`Attempting to play sound: ${filePath}`);
   const soundPlayer = player();
 
   // Use mpg123 with volume control
   const volumePercent = volume * 2.5;
-  outputChannel.appendLine(
+  log(
     `about to play with: Math.round(${volume} * 10) volume: ${volumePercent}`
   );
   const playerOptions = ["-v", volumePercent.toString()];
@@ -205,28 +214,31 @@ function playSound(filePath: string) {
 
   audio = soundPlayer.play(filePath, { afplay: playerOptions }, (err) => {
     if (err) {
-      outputChannel.appendLine(`Error playing sound: ${err}`);
+      log(`Error playing sound: ${err}`);
       vscode.window.showErrorMessage(`Failed to play sound: ${err}`);
     } else {
-      outputChannel.appendLine("Sound played successfully");
+      log("Sound played successfully");
     }
   });
 }
 
 function stopSound() {
-  outputChannel.appendLine("Stopping sound");
+  log("Stopping sound");
   if (audio && typeof audio.kill === "function") {
     audio.kill();
     audio = null;
-    outputChannel.appendLine("Sound stopped");
-  } else {
-    outputChannel.appendLine("No audio to stop");
+    log("Sound stopped");
   }
 }
 
 export function deactivate() {
-  outputChannel.appendLine("BetterUndo extension deactivated");
+  log("BetterUndo extension deactivated");
   if (isPlaying) {
     stopSound();
   }
+}
+
+function log(msg: string, force: boolean = false) {
+  if (!debugMode && !force) return;
+  outputChannel.appendLine(msg);
 }

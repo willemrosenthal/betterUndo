@@ -2,8 +2,8 @@
   "name": "betterundo",
   "displayName": "BetterUndo",
   "description": "Improved developer experiance for undoing large sections of code",
-  "version": "0.0.1",
-  "publisher": "Willem Rosenthal",
+  "version": "0.0.3",
+  "publisher": "WillemRosenthal",
   "engines": {
     "vscode": "^1.93.1"
   },
@@ -17,12 +17,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "betterundo.startUndoSound",
-        "title": "Start Undo Sound"
-      },
-      {
-        "command": "betterUndo.stopUndoSound",
-        "title": "Stop Undo Sound"
+        "command": "betterundo.undoPressed",
+        "title": "Undo Pressed"
       },
       {
         "command": "betterundo.setVolume",
@@ -31,6 +27,14 @@
       {
         "command": "betterundo.setDelay",
         "title": "Set BetterUndo Delay - (time before betterUndo is triggered)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "betterUndo.undoPressed",
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "when": "editorTextFocus"
       }
     ],
     "configuration": {
@@ -53,20 +57,6 @@
       }
     }
   },
-  "keybindings": [
-    {
-      "command": "betterUndo.startUndoSound",
-      "key": "ctrl+z",
-      "mac": "cmd+z",
-      "when": "editorTextFocus"
-    },
-    {
-      "command": "betterUndo.stopUndoSound",
-      "key": "-ctrl+z",
-      "mac": "-cmd+z",
-      "when": "editorTextFocus"
-    }
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/BetterUndo.git"
