@@ -5,13 +5,15 @@ import player from "play-sound";
 const debugMode = true;
 
 let audio: any;
-let holdTimeout: NodeJS.Timeout | undefined;
 let isPlaying = false;
 let lastUndoTime = 0;
 let debounceTimer: NodeJS.Timeout | undefined;
 let volume = 0.38;
 let assistanceDelay = 0.8;
-let bufferTime = 0;
+
+let threshold = 0;
+// let holdVal = 25 * 0.1;
+let reduceVal = 0.075;
 
 // Create an output channel for logging
 let outputChannel: vscode.OutputChannel;
@@ -106,48 +108,65 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand("betterundo.undoPressed", async (event: vscode.TextDocumentChangeEvent) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        return; // No active editor
+      }
+
+      const document = editor.document;
+      const initialVersion = document.version;
+
+      await vscode.commands.executeCommand("undo");
+
+      // Check if the document actually changed
+      const documentChanged = document.version !== initialVersion;
+
+      if (documentChanged) {
+        if (threshold < 0) {
+          threshold = 0;
+        }
+        threshold += 1 / assistanceDelay; //holdVal;
+  
+        if (threshold >= 1) {
+          if (!isPlaying) {
+            isPlaying = true;
+            playSound(soundFilePath);
+          }
+          if (threshold > 1 + 0.1) {
+            threshold = 1.1;
+          }
+        }
+      }
+      // doccument not changed
+      else {
+        if (isPlaying) {
+          stopPlaying();
+        }
+        threshold = 0;
+      }
+
+    })
+  );
+  
+
+  context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument(
       debounce((event: vscode.TextDocumentChangeEvent) => {
-        if (isUndoEvent(event)) {
-          log("Undo command detected");
-          // vscode.window.showInformationMessage("Undo command detected!");
 
-          if (!holdTimeout) {
-            holdTimeout = setTimeout(() => {
-              log(
-                "Hold threshold reached, attempting to play sound"
-              );
-              if (!isPlaying) {
-                playSound(soundFilePath);
-                isPlaying = true;
-              }
-            }, assistanceDelay * 1000);
-          }
-          bufferTime = 3;
+        threshold -= reduceVal;
+        if (isPlaying && threshold <= 1) {
+          threshold = 0;
+          isPlaying = false;
+          stopPlaying();
         }
-        // if not an undo event
-        else {
-          log("Not Undo : isPlaying" + isPlaying);         
 
-          // account for race condition
-          if (bufferTime > 0 && isPlaying) {
-            bufferTime--;
-            return;
-          }
-          if (bufferTime <= 0) {
-            stopPlaying();
-          }
-          // log("Change. Stop sound!");
-          if (holdTimeout) {
-            clearTimeout(holdTimeout);
-            holdTimeout = undefined;
-            log("Hold timeout cleared");
-          }
-          if (isPlaying) {
-            stopPlaying();
-            log("Sound stopped");
-          }
+        if (threshold > -0.2) {
+          
+          log('t: ' + threshold);
         }
+
+        return;
       }, 70)
     )
   );
@@ -156,6 +175,7 @@ export function activate(context: vscode.ExtensionContext) {
 function stopPlaying() {
   stopSound();
   isPlaying = false;
+  log("~~~~~~~~~~~~~~~~~~~~~ STOP SONG (No more changes) ~~~~~~~~~~~~~~~~~~~~~");
 }
 
 function updateSettings() {
@@ -167,6 +187,7 @@ function updateSettings() {
     `Assistance delay updated to: ${assistanceDelay} seconds`
   );
 }
+
 
 function isUndoEvent(event: vscode.TextDocumentChangeEvent): boolean {
   const now = Date.now();
@@ -201,6 +222,8 @@ function debounce(func: Function, delay: number) {
 }
 
 function playSound(filePath: string) {
+  log("~~~~~~~~~~~~~~~~~~~~~ START SONG ~~~~~~~~~~~~~~~~~~~~~");
+
   log(`Attempting to play sound: ${filePath}`);
   const soundPlayer = player();
 
@@ -239,6 +262,8 @@ export function deactivate() {
 }
 
 function log(msg: string, force: boolean = false) {
-  if (!debugMode && !force) return;
+  if (!debugMode && !force) {
+    return undefined;
+  };
   outputChannel.appendLine(msg);
 }

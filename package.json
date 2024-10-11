@@ -31,7 +31,7 @@
     ],
     "keybindings": [
       {
-        "command": "betterUndo.undoPressed",
+        "command": "betterundo.undoPressed",
         "key": "ctrl+z",
         "mac": "cmd+z",
         "when": "editorTextFocus"
