@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import player from "play-sound";
 
-const debugMode = true;
+const debugMode = false;
 
 let audio: any;
 let isPlaying = false;

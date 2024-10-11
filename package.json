@@ -2,7 +2,7 @@
   "name": "betterundo",
   "displayName": "BetterUndo",
   "description": "Improved developer experiance for undoing large sections of code",
-  "version": "0.0.3",
+  "version": "1.0.1",
   "publisher": "WillemRosenthal",
   "engines": {
     "vscode": "^1.93.1"
@@ -67,18 +67,17 @@
     "src/yakety-sax.mp3"
   ],
   "scripts": {
-    "vscode:prepublish": "npm run package",
     "compile": "node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "node esbuild.js --production",
     "test-compile": "tsc -p ./",
     "test-watch": "tsc -watch -p ./",
     "pretest": "npm run test-compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
-    "create-vsix": "vsce package"
+    "create-vsix": "vsce package",
+    "package": "vsce package -o ./vsix_packages/"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.8",
