@@ -12,7 +12,7 @@ Settings:
 
 Users appreciate release notes as you update your extension.
 
-### 1.0.1
+### 1.1.1
 
 Initial release
 

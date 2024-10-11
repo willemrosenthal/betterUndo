@@ -2,13 +2,13 @@ import * as vscode from "vscode";
 import * as path from "path";
 import player from "play-sound";
 
-const debugMode = false;
+const debugMode = true;
 
 let audio: any;
 let isPlaying = false;
 let lastUndoTime = 0;
 let debounceTimer: NodeJS.Timeout | undefined;
-let volume = 0.38;
+let volume = 0.5;
 let assistanceDelay = 0.8;
 
 let threshold = 0;
@@ -162,7 +162,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         if (threshold > -0.2) {
-          
           log('t: ' + threshold);
         }
 
@@ -180,8 +179,8 @@ function stopPlaying() {
 
 function updateSettings() {
   const config = vscode.workspace.getConfiguration("betterundo");
-  volume = config.get("volume", 0.35);
-  assistanceDelay = config.get("assistanceDelay", 0.26);
+  volume = config.get("volume", 0.5);
+  assistanceDelay = config.get("assistanceDelay", 0.8);
   log(`Volume updated to: ${volume}`);
   log(
     `Assistance delay updated to: ${assistanceDelay} seconds`
@@ -228,7 +227,7 @@ function playSound(filePath: string) {
   const soundPlayer = player();
 
   // Use mpg123 with volume control
-  const volumePercent = volume * 2.5;
+  const volumePercent = volume * 0.25;
   log(
     `about to play with: Math.round(${volume} * 10) volume: ${volumePercent}`
   );
@@ -262,8 +261,11 @@ export function deactivate() {
 }
 
 function log(msg: string, force: boolean = false) {
-  if (!debugMode && !force) {
-    return undefined;
-  };
-  outputChannel.appendLine(msg);
+  // if (!debugMode && !force) {
+  //   return undefined;
+  // };
+  outputChannel.appendLine((debugMode || force) ? '' : msg);
+  // if (debugMode || force) {
+  // }
+  return undefined;
 }

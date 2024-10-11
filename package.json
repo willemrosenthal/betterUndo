@@ -2,7 +2,7 @@
   "name": "betterundo",
   "displayName": "BetterUndo",
   "description": "Improved developer experiance for undoing large sections of code",
-  "version": "1.0.1",
+  "version": "1.1.1",
   "publisher": "WillemRosenthal",
   "engines": {
     "vscode": "^1.93.1"
@@ -42,7 +42,7 @@
       "properties": {
         "betterundo.volume": {
           "type": "number",
-          "default": 0.4,
+          "default": 0.5,
           "minimum": 0,
           "maximum": 1,
           "description": "Set the volume for the undo sound (0 to 1)"
