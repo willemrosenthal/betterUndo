@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("betterundo.setDelay", async () => {
       const result = await vscode.window.showInputBox({
         prompt: "Enter assistance delay (in seconds) - max 5 - ",
-        placeHolder: "0.8 is recommended / default",
+        placeHolder: "0.3 is recommended / default",
       });
       if (result !== undefined) {
         const newDelay = parseFloat(result);
@@ -157,7 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
           endSongTimeout = setTimeout(()=> {
             stopPlaying();
-          }, 100);
+          }, 200);
         // }
       }
       // doccument not changed
