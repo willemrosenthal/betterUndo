@@ -2,7 +2,7 @@
   "name": "betterundo",
   "displayName": "BetterUndo",
   "description": "Improved developer experiance for undoing large sections of code",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "publisher": "WillemRosenthal",
   "engines": {
     "vscode": "^1.93.1"
