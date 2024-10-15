@@ -6,15 +6,11 @@ const debugMode = false;
 
 let audio: any;
 let isPlaying = false;
-let lastUndoTime = 0;
-let debounceTimer: NodeJS.Timeout | undefined;
 let volume = 0.5;
 let assistanceDelay = 0.8;
 
 let threshold = 0;
 let last = 0;
-// let holdVal = 25 * 0.1;
-let reduceVal = 0.075;
 let endSongTimeout: NodeJS.Timeout | undefined;
 
 // Create an output channel for logging
@@ -28,9 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   log("BetterUndo extension activated");
-  // vscode.window.showInformationMessage(
-  //   `BetterUndo extension is activated.`
-  // );
 
   const soundFilePath = path.join(
     context.extensionPath,
@@ -116,7 +109,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("betterundo.undoPressed", async (event: vscode.TextDocumentChangeEvent) => {
-      // log('t: ' + threshold);
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
         return; // No active editor
@@ -141,29 +133,20 @@ export function activate(context: vscode.ExtensionContext) {
         threshold += timeDiff;
        
         log((threshold) + ' >= ' + (assistanceDelay * 1000) + ' : ' + (threshold >= assistanceDelay * 1000));
-        // log('t: ' + threshold);
 
-        // threshold += 1 / assistanceDelay; //holdVal;
-        // log('t - after: ' + threshold);
-  
         if (threshold >= assistanceDelay * 1000) {
           if (!isPlaying) {
             isPlaying = true;
             playSound(soundFilePath);
           }
-          // if (threshold > assistanceDelay + 0.1) {
-          //   threshold = assistanceDelay + 0.1;
-          // }
         }
 
-        // if (isPlaying) {
-          if (endSongTimeout) {
-            clearTimeout(endSongTimeout);
-          }
-          endSongTimeout = setTimeout(()=> {
-            stopPlaying();
-          }, 200);
-        // }
+        if (endSongTimeout) {
+          clearTimeout(endSongTimeout);
+        }
+        endSongTimeout = setTimeout(()=> {
+          stopPlaying();
+        }, 200);
       }
       // doccument not changed
       else {
@@ -176,9 +159,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     })
   );
-  
-
-  
 }
 
 function stopPlaying() {
@@ -186,7 +166,7 @@ function stopPlaying() {
   isPlaying = false;
   threshold = 0;
   last = 0;
-  log("~~~~~~~~~~~~~~~~~~~~~ STOP SONG (No more changes) ~~~~~~~~~~~~~~~~~~~~~");
+  log("~~~~~~~~~~~~~~~~~~~~~ STOP SONG ~~~~~~~~~~~~~~~~~~~~~");
 }
 
 function updateSettings() {
@@ -199,52 +179,17 @@ function updateSettings() {
   );
 }
 
-
-// function isUndoEvent(event: vscode.TextDocumentChangeEvent): boolean {
-//   const now = Date.now();
-//   if (now - lastUndoTime < 300) {
-//     return true;
-//   }
-
-//   if (event.contentChanges.length === 1) {
-//     const change = event.contentChanges[0];
-//     if (change.rangeLength > 0 && change.text === "") {
-//       lastUndoTime = now;
-//       return true;
-//     }
-//   }
-
-//   // Additional check: If the buffer is empty but undo command was triggered
-//   if (event.document.version === 1 && event.contentChanges.length === 0) {
-//     log("Undo reached the start of the document.");
-//     return false;
-//   }
-
-//   return false;
-// }
-
-function debounce(func: Function, delay: number) {
-  return (...args: any[]) => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-    debounceTimer = setTimeout(() => func(...args), delay);
-  };
-}
-
 function playSound(filePath: string) {
   log("~~~~~~~~~~~~~~~~~~~~~ START SONG ~~~~~~~~~~~~~~~~~~~~~");
 
   log(`Attempting to play sound: ${filePath}`);
   const soundPlayer = player();
 
-  // Use mpg123 with volume control
   const volumePercent = volume * 0.25;
   log(
     `about to play with: Math.round(${volume} * 10) volume: ${volumePercent}`
   );
   const playerOptions = ["-v", volumePercent.toString()];
-  // afplay: ['-v', 0.5]
 
   audio = soundPlayer.play(filePath, { afplay: playerOptions }, (err) => {
     if (err) {
