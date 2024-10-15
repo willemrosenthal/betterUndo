@@ -22,8 +22,10 @@ let outputChannel: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize the output channel
-  outputChannel = vscode.window.createOutputChannel("BetterUndo");
-  outputChannel.show();
+  if (debugMode) {
+    outputChannel = vscode.window.createOutputChannel("BetterUndo");
+    outputChannel.show();
+  }
 
   log("BetterUndo extension activated");
   // vscode.window.showInformationMessage(

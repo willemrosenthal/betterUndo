@@ -7,10 +7,11 @@ Just install, no configuration is necessary. It will activate automatically when
 
 Users appreciate release notes as you update your extension.
 
-### 1.3.2
+### 1.3.3
 
 - improvements to undo function + more accuracy on time delay
 - removed notice that extension is active
+- no-longer opens output tab on activations of plugin
 
 ---
 
