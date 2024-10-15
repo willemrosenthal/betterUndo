@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
   outputChannel = vscode.window.createOutputChannel("BetterUndo");
   outputChannel.show();
 
-  log("BetterUndo extension activated", true);
+  log("BetterUndo extension activated");
 
   const soundFilePath = path.join(
     context.extensionPath,
